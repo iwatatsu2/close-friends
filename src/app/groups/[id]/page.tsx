@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PostCard from "@/components/PostCard";
+import TonightStatus from "@/components/TonightStatus";
 import { registerPushSubscription } from "@/lib/push";
 import { ensureProfile } from "@/lib/ensureProfile";
 import type { Group, Post } from "@/lib/types";
@@ -100,12 +101,17 @@ export default function GroupTimelinePage() {
       {/* Group photo banner */}
       <div className="max-w-lg mx-auto px-4 pt-4">
         <div className="relative rounded-2xl overflow-hidden border border-indigo-700 shadow-lg">
-          <img src="/group-photo.png" alt="仲間たち" className="w-full h-32 object-cover object-top" />
+          <img src="/group-photo.png" alt="仲間たち" className="w-full object-contain" />
           <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/90 via-indigo-950/30 to-transparent" />
           <div className="absolute bottom-2 left-3">
             <p className="text-white text-xs font-bold drop-shadow-lg">🎮 最強の宴メン</p>
           </div>
         </div>
+      </div>
+
+      {/* Tonight status */}
+      <div className="max-w-lg mx-auto px-4 pt-4">
+        <TonightStatus groupId={id} currentUserId={currentUserId} />
       </div>
 
       {/* Posts */}
