@@ -1,0 +1,161 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export default function ProfileSetupPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [displayName, setDisplayName] = useState('')
+  const [bio, setBio] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Pre-fill existing profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, bio')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setDisplayName(profile.display_name ?? '')
+        setBio(profile.bio ?? '')
+      }
+      setFetching(false)
+    }
+
+    fetchProfile()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        display_name: displayName.trim(),
+        bio: bio.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      setError('プロフィールの保存に失敗しました。もう一度お試しください')
+      setLoading(false)
+      return
+    }
+
+    router.push('/')
+    router.refresh()
+  }
+
+  if (fetching) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center">
+        <p className="text-gray-400 text-sm animate-pulse">読み込み中...</p>
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-1">
+          <div className="text-4xl">✏️</div>
+          <h1 className="text-2xl font-bold text-gray-900">プロフィール設定</h1>
+          <p className="text-sm text-gray-500">グループのメンバーに表示されます</p>
+        </div>
+
+        {/* Form */}
+        <Card className="border-rose-100 shadow-sm">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="displayName" className="text-gray-700">
+                  表示名 <span className="text-red-400">*</span>
+                </Label>
+                <Input
+                  id="displayName"
+                  type="text"
+                  placeholder="例：たなか ゆい"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  maxLength={50}
+                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                />
+                <p className="text-xs text-gray-400">{displayName.length}/50文字</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="bio" className="text-gray-700">
+                  自己紹介 <span className="text-gray-400 font-normal">（任意）</span>
+                </Label>
+                <textarea
+                  id="bio"
+                  placeholder="ひとことメッセージや自己紹介を書いてみよう"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={200}
+                  rows={4}
+                  className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-200 resize-none"
+                />
+                <p className="text-xs text-gray-400">{bio.length}/200文字</p>
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                  {error}
+                </p>
+              )}
+
+              <div className="space-y-2 pt-1">
+                <Button
+                  type="submit"
+                  disabled={loading || !displayName.trim()}
+                  className="w-full bg-rose-500 hover:bg-rose-600 text-white disabled:opacity-50"
+                  size="lg"
+                >
+                  {loading ? '保存中...' : '保存してはじめる'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-gray-400 hover:text-gray-600"
+                  onClick={() => router.push('/')}
+                >
+                  スキップ
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  )
+}
