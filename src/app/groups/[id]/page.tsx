@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PostCard from "@/components/PostCard";
 import { registerPushSubscription } from "@/lib/push";
+import { ensureProfile } from "@/lib/ensureProfile";
 import type { Group, Post } from "@/lib/types";
 
 export default function GroupTimelinePage() {
@@ -30,6 +31,7 @@ export default function GroupTimelinePage() {
       }
 
       setCurrentUserId(user.id);
+      await ensureProfile(supabase, user.id);
       registerPushSubscription(user.id);
 
       const [{ data: groupData }, { data: postsData }] = await Promise.all([

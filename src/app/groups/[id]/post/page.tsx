@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ensureProfile } from "@/lib/ensureProfile";
 
 const MOODS = [
   { emoji: "😊", label: "うれしい" },
@@ -56,6 +57,8 @@ export default function CreatePostPage() {
         router.push("/login");
         return;
       }
+
+      await ensureProfile(supabase, user.id);
 
       let image_url: string | null = null;
 
