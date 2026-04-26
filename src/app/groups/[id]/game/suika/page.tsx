@@ -211,14 +211,29 @@ export default function SuikaPage() {
       if (b.x + b.r > right) { b.x = right - b.r; b.vx = -Math.abs(b.vx) * BOUNCE; }
     }
 
-    // Ball-ball collisions
+    // Ball-ball collisions + merge
+    const toAdd: Ball[] = [];
     for (let i = 0; i < balls.length; i++) {
       for (let j = i + 1; j < balls.length; j++) {
         const a = balls[i], b = balls[j];
+        if (a.merged || b.merged) continue;
         const dx = b.x - a.x, dy = b.y - a.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const minDist = a.r + b.r;
         if (dist < minDist && dist > 0) {
+          // Same type → merge
+          if (a.type === b.type && a.type < FRUITS.length - 1) {
+            a.merged = true;
+            b.merged = true;
+            const newType = a.type + 1;
+            const newBall = makeBall(newType, (a.x + b.x) / 2, (a.y + b.y) / 2);
+            toAdd.push(newBall);
+            scoreRef.current += FRUITS[newType].pts;
+            setScore(scoreRef.current);
+            continue;
+          }
+
+          // Different type → push apart
           const nx = dx / dist, ny = dy / dist;
           const overlap = minDist - dist;
           const totalMass = a.r + b.r;
@@ -227,7 +242,6 @@ export default function SuikaPage() {
           b.x += nx * overlap * (a.r / totalMass);
           b.y += ny * overlap * (a.r / totalMass);
 
-          // Velocity exchange
           const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
           const dvDotN = dvx * nx + dvy * ny;
           if (dvDotN > 0) {
@@ -237,27 +251,6 @@ export default function SuikaPage() {
             b.vx += dvDotN * nx * restitution;
             b.vy += dvDotN * ny * restitution;
           }
-        }
-      }
-    }
-
-    // Merge same-type balls
-    const toAdd: Ball[] = [];
-    for (let i = 0; i < balls.length; i++) {
-      for (let j = i + 1; j < balls.length; j++) {
-        const a = balls[i], b = balls[j];
-        if (a.merged || b.merged || a.type !== b.type) continue;
-        if (a.type >= FRUITS.length - 1) continue; // スイカ同士はマージしない
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < (a.r + b.r) * 0.8) {
-          a.merged = true;
-          b.merged = true;
-          const newType = a.type + 1;
-          const newBall = makeBall(newType, (a.x + b.x) / 2, (a.y + b.y) / 2);
-          toAdd.push(newBall);
-          scoreRef.current += FRUITS[newType].pts;
-          setScore(scoreRef.current);
         }
       }
     }
