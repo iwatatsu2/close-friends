@@ -106,28 +106,27 @@ export default function ProfileSetupPage() {
         setUploading(false)
       }
 
-      // まずupdateを試みる
-      const { error: updateError, count } = await supabase
+      // updateを試みる
+      const updatePayload = {
+        display_name: displayName.trim(),
+        bio: bio.trim() || null,
+        avatar_url: newAvatarUrl,
+      }
+      const { error: updateError } = await supabase
         .from('profiles')
-        .update({
-          display_name: displayName.trim(),
-          bio: bio.trim() || null,
-          avatar_url: newAvatarUrl,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', userId)
 
       if (updateError) {
-        // updateが失敗したらinsertを試みる
+        console.error('Profile update failed:', updateError)
+        // updateが失敗 → insertを試みる
         const { error: insertError } = await supabase
           .from('profiles')
-          .insert({
-            id: userId,
-            display_name: displayName.trim(),
-            bio: bio.trim() || null,
-            avatar_url: newAvatarUrl,
-          })
-        if (insertError) throw insertError
+          .insert({ id: userId, ...updatePayload })
+        if (insertError) {
+          console.error('Profile insert failed:', insertError)
+          throw new Error(`更新失敗: ${updateError.message} / 作成失敗: ${insertError.message}`)
+        }
       }
 
       setAvatarUrl(newAvatarUrl)
