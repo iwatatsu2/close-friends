@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -14,8 +14,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CloseFriends",
-  description: "友だちだけの日記・近況共有アプリ",
+  title: "YoruBase",
+  description: "夜の秘密基地 - いつメンとつながるゲーム仲間アプリ",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "YoruBase",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1e1b4b",
 };
 
 export default function RootLayout({

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   if (!vapidPublic || !vapidPrivate) {
     return NextResponse.json({ sent: 0, error: "VAPID keys not configured" });
   }
-  webpush.setVapidDetails("mailto:noreply@closefriends.app", vapidPublic, vapidPrivate);
+  webpush.setVapidDetails("mailto:noreply@yorubase.app", vapidPublic, vapidPrivate);
 
   const { groupId, title, body, url, excludeUserId } = await req.json();
 

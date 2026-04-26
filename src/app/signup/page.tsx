@@ -69,7 +69,7 @@ export default function SignupPage() {
         <div className="text-center space-y-1">
           <div className="text-3xl">🎮</div>
           <h1 className="text-2xl font-bold text-white">新規登録</h1>
-          <p className="text-sm text-indigo-300">CloseFriendsを始めましょう</p>
+          <p className="text-sm text-indigo-300">YoruBaseを始めましょう</p>
         </div>
 
         <Card className="border-indigo-800 bg-indigo-950/60 shadow-lg backdrop-blur">

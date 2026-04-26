@@ -32,8 +32,8 @@ export default async function HomePage() {
         {/* Logo / App name */}
         <div className="text-center space-y-2">
           <div className="text-5xl">🎮</div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">CloseFriends</h1>
-          <p className="text-sm text-indigo-300">いつメンとつながる、秘密基地</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white">YoruBase</h1>
+          <p className="text-sm text-indigo-300">夜の秘密基地</p>
         </div>
 
         {/* Group photo */}
