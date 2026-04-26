@@ -32,6 +32,20 @@ const GAMES = [
     description: "フルーツを落として合体！スイカを目指せ！",
     color: "from-green-600 to-lime-500",
   },
+  {
+    id: "snake",
+    emoji: "🐍",
+    name: "スネーク",
+    description: "エサを食べてヘビを伸ばせ！壁と自分に当たるな！",
+    color: "from-lime-600 to-green-700",
+  },
+  {
+    id: "reaction",
+    emoji: "🎯",
+    name: "リアクションタイム",
+    description: "画面が光った瞬間にタップ！反射神経で勝負！",
+    color: "from-rose-600 to-pink-600",
+  },
 ];
 
 export default function GameHubPage() {
