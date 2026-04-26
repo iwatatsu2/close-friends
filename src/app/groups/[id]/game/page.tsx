@@ -25,6 +25,13 @@ const GAMES = [
     description: "パドルでボールを弾いてブロックを全部壊せ！",
     color: "from-orange-600 to-red-600",
   },
+  {
+    id: "suika",
+    emoji: "🍉",
+    name: "スイカゲーム",
+    description: "フルーツを落として合体！スイカを目指せ！",
+    color: "from-green-600 to-lime-500",
+  },
 ];
 
 export default function GameHubPage() {
