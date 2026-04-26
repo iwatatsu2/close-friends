@@ -101,21 +101,21 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto p-4">
+    <div className="w-full max-w-lg mx-auto px-3 py-4">
       <button onClick={() => router.push(`/groups/${groupId}`)} className="text-indigo-400 text-sm mb-1">
         ← タイムラインに戻る
       </button>
       <h1 className="text-xl font-bold mb-4 text-white">遊べる日カレンダー</h1>
 
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="outline" size="sm" className="border-indigo-600 text-indigo-300 hover:bg-indigo-900/50" onClick={() => setWeekOffset((w) => w - 1)}>
-          ← 前の週
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <Button variant="outline" size="sm" className="border-indigo-600 text-indigo-300 hover:bg-indigo-900/50 text-xs px-2 shrink-0" onClick={() => setWeekOffset((w) => w - 1)}>
+          ← 前週
         </Button>
-        <span className="text-sm font-medium text-indigo-200">
+        <span className="text-sm font-medium text-indigo-200 text-center">
           {weekDates[0].getMonth() + 1}/{weekDates[0].getDate()} 〜 {weekDates[6].getMonth() + 1}/{weekDates[6].getDate()}
         </span>
-        <Button variant="outline" size="sm" className="border-indigo-600 text-indigo-300 hover:bg-indigo-900/50" onClick={() => setWeekOffset((w) => w + 1)}>
-          次の週 →
+        <Button variant="outline" size="sm" className="border-indigo-600 text-indigo-300 hover:bg-indigo-900/50 text-xs px-2 shrink-0" onClick={() => setWeekOffset((w) => w + 1)}>
+          次週 →
         </Button>
       </div>
 
@@ -129,25 +129,25 @@ export default function SchedulePage() {
 
           return (
             <Card key={dateStr} className={`border-indigo-800 bg-indigo-950/60 ${isToday ? "ring-2 ring-indigo-400" : ""} ${isPast ? "opacity-50" : ""}`}>
-              <CardContent className="py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-bold w-6 text-center ${i >= 5 ? "text-blue-400" : "text-indigo-200"} ${i === 6 ? "text-red-400" : ""}`}>
+              <CardContent className="py-3 px-3">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`text-sm font-bold w-5 text-center shrink-0 ${i >= 5 ? "text-blue-400" : "text-indigo-200"} ${i === 6 ? "text-red-400" : ""}`}>
                       {WEEKDAYS[i]}
                     </span>
-                    <span className="text-sm text-indigo-200">
+                    <span className="text-sm text-indigo-200 shrink-0">
                       {date.getMonth() + 1}/{date.getDate()}
                     </span>
-                    {isToday && <span className="text-xs bg-indigo-500 text-white px-1.5 py-0.5 rounded">今日</span>}
+                    {isToday && <span className="text-[10px] bg-indigo-500 text-white px-1 py-0.5 rounded shrink-0">今日</span>}
                   </div>
                   {!isPast && (
                     <Button
                       size="sm"
                       onClick={() => toggleAvailability(dateStr)}
-                      className={myAvail
+                      className={`shrink-0 text-xs h-8 px-3 ${myAvail
                         ? "bg-indigo-500 hover:bg-indigo-400 text-white"
                         : "bg-transparent border border-indigo-600 text-indigo-300 hover:bg-indigo-900/50"
-                      }
+                      }`}
                     >
                       {myAvail ? "✓ 遊べる" : "遊べる"}
                     </Button>
@@ -159,7 +159,7 @@ export default function SchedulePage() {
                     {dayAvail.map((a) => (
                       <span
                         key={a.id}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-900/50 text-green-300"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-green-900/50 text-green-300"
                       >
                         {a.profiles?.display_name || "?"}
                         {a.start_time && (
