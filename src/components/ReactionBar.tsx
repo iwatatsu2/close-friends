@@ -12,7 +12,7 @@ interface ReactionBarProps {
   onReaction?: () => void;
 }
 
-const PRESET_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🎉"];
+const PRESET_EMOJIS = ["❤️", "👍", "😂", "🔥", "🎮", "⚔️", "🏆", "💀"];
 
 function groupReactions(reactions: Reaction[]): Record<string, string[]> {
   return reactions.reduce<Record<string, string[]>>((acc, r) => {
@@ -82,8 +82,8 @@ export default function ReactionBar({
             disabled={loading}
             className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${
               isMine
-                ? "bg-indigo-100 border-indigo-300 text-indigo-700"
-                : "bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200"
+                ? "bg-indigo-900/60 border-indigo-500 text-indigo-300"
+                : "bg-indigo-950/40 border-indigo-700 text-gray-300 hover:bg-indigo-900/40"
             }`}
           >
             <span>{emoji}</span>
@@ -97,21 +97,21 @@ export default function ReactionBar({
         <button
           type="button"
           onClick={() => setShowPicker((v) => !v)}
-          className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors"
+          className="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-950/40 border border-indigo-700 hover:bg-indigo-900/40 transition-colors"
           aria-label="リアクションを追加"
         >
-          <Plus className="h-3.5 w-3.5 text-gray-500" />
+          <Plus className="h-3.5 w-3.5 text-indigo-400" />
         </button>
 
         {showPicker && (
-          <div className="absolute bottom-9 left-0 z-10 bg-white border border-gray-200 rounded-2xl shadow-lg p-2 flex gap-1">
+          <div className="absolute bottom-9 left-0 z-10 bg-indigo-950 border border-indigo-700 rounded-2xl shadow-lg p-2 flex gap-1">
             {PRESET_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => toggleReaction(emoji)}
-                className={`text-xl px-1.5 py-1 rounded-lg hover:bg-gray-100 transition-colors ${
-                  myReactionEmojis.includes(emoji) ? "bg-indigo-100" : ""
+                className={`text-xl px-1.5 py-1 rounded-lg hover:bg-indigo-800 transition-colors ${
+                  myReactionEmojis.includes(emoji) ? "bg-indigo-800" : ""
                 }`}
               >
                 {emoji}

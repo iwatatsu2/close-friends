@@ -123,6 +123,9 @@
   }
   body {
     @apply text-foreground;
+    background: linear-gradient(to bottom, #1e1b4b, #2e1065, #111827);
+    color: #f3f4f6;
+    min-height: 100vh;
   }
   html {
     @apply font-sans;

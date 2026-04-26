@@ -11,7 +11,7 @@ interface PostFormProps {
   onSuccess?: () => void;
 }
 
-const MOOD_EMOJIS = ["😊", "😎", "🥰", "😅", "😴", "🤔", "😤", "🥳", "😷", "💪"];
+const MOOD_EMOJIS = ["😊", "🎮", "🔥", "🏆", "💀", "⚔️", "😎", "😴", "🤔", "🥳"];
 
 export default function PostForm({ groupId, onSuccess }: PostFormProps) {
   const [content, setContent] = useState("");

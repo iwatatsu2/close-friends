@@ -38,7 +38,7 @@ export default function PostCard({ post, currentUserId, groupId, onReaction }: P
   const commentCount = localComments.length;
 
   return (
-    <Card className="mb-4 overflow-hidden shadow-sm">
+    <Card className="mb-4 overflow-hidden shadow-sm bg-indigo-950/60 border-indigo-800">
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
@@ -49,8 +49,8 @@ export default function PostCard({ post, currentUserId, groupId, onReaction }: P
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{displayName}</p>
-            <p className="text-xs text-gray-400">{timeAgo(post.created_at)}</p>
+            <p className="font-semibold text-sm text-gray-100 truncate">{displayName}</p>
+            <p className="text-xs text-indigo-400">{timeAgo(post.created_at)}</p>
           </div>
           {post.mood && (
             <span className="text-2xl" role="img" aria-label="mood">
@@ -60,7 +60,7 @@ export default function PostCard({ post, currentUserId, groupId, onReaction }: P
         </div>
 
         {/* Content */}
-        <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap mb-3">
+        <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mb-3">
           {post.content}
         </p>
 
@@ -87,7 +87,7 @@ export default function PostCard({ post, currentUserId, groupId, onReaction }: P
         <Button
           variant="ghost"
           size="sm"
-          className="mt-2 text-xs text-gray-500 px-0 h-auto hover:text-indigo-600"
+          className="mt-2 text-xs text-indigo-400 px-0 h-auto hover:text-indigo-300"
           onClick={() => setShowComments((v) => !v)}
         >
           {showComments

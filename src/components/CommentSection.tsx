@@ -88,7 +88,7 @@ export default function CommentSection({
     <div className="space-y-3">
       {/* Comment list */}
       {comments.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-2">
+        <p className="text-xs text-indigo-400 text-center py-2">
           まだコメントはありません
         </p>
       ) : (
@@ -109,14 +109,14 @@ export default function CommentSection({
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-gray-800 truncate">
+                    <span className="text-xs font-semibold text-gray-200 truncate">
                       {displayName}
                     </span>
-                    <span className="text-[10px] text-gray-400 flex-shrink-0">
+                    <span className="text-[10px] text-indigo-400 flex-shrink-0">
                       {timeAgo(comment.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 leading-snug mt-0.5 break-words">
+                  <p className="text-sm text-gray-200 leading-snug mt-0.5 break-words">
                     {comment.content}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export default function CommentSection({
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="コメントを追加..."
-          className="flex-1 h-9 text-sm rounded-full bg-gray-50 border-gray-200 focus-visible:ring-indigo-400"
+          className="flex-1 h-9 text-sm rounded-full bg-indigo-950/50 border-indigo-700 focus-visible:ring-indigo-400 text-gray-100 placeholder:text-indigo-500"
           disabled={loading}
         />
         <Button

@@ -10,8 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const MOODS = [
   { emoji: "😊", label: "うれしい" },
-  { emoji: "😢", label: "かなしい" },
-  { emoji: "😤", label: "むかつく" },
+  { emoji: "🎮", label: "ゲーム中" },
+  { emoji: "🔥", label: "アツい" },
+  { emoji: "🏆", label: "勝った！" },
+  { emoji: "💀", label: "やられた" },
+  { emoji: "⚔️", label: "バトル" },
   { emoji: "🎉", label: "やったー" },
   { emoji: "😴", label: "ねむい" },
   { emoji: "🤔", label: "なやむ" },
