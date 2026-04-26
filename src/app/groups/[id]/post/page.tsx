@@ -84,7 +84,8 @@ export default function CreatePostPage() {
 
       router.push(`/groups/${id}`);
     } catch (err) {
-      setError("投稿に失敗しました。もう一度お試しください。");
+      const errMsg = err instanceof Error ? err.message : JSON.stringify(err);
+      setError(`投稿に失敗しました: ${errMsg}`);
       console.error(err);
     } finally {
       setLoading(false);
