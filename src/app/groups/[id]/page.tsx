@@ -34,7 +34,7 @@ export default function GroupTimelinePage() {
         supabase.from("cf_groups").select("*").eq("id", id).single(),
         supabase
           .from("cf_posts")
-          .select("*, profiles(*)")
+          .select("*, profiles:user_id(*)")
           .eq("group_id", id)
           .order("created_at", { ascending: false }),
       ]);
