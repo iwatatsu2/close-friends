@@ -51,12 +51,19 @@ export default function GamePage() {
     const uid = userId || userIdRef.current;
     const { data } = await supabase
       .from("cf_game_scores")
-      .select("*, profiles(*)")
+      .select("*")
       .eq("group_id", groupId)
       .eq("game_type", "tap_battle")
       .order("score", { ascending: false })
       .limit(20);
-    if (data) setRanking(data as ScoreEntry[]);
+    if (data) {
+      const userIds = [...new Set(data.map((d: any) => d.user_id))];
+      const { data: profilesData } = userIds.length > 0
+        ? await supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds)
+        : { data: [] };
+      const profileMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
+      setRanking(data.map((d: any) => ({ ...d, profiles: profileMap.get(d.user_id) || null })) as ScoreEntry[]);
+    }
 
     if (!uid) return;
     const { data: myData } = await supabase
