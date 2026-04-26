@@ -49,7 +49,7 @@ export default function CommentSection({
         user_id: currentUserId,
         content: text.trim(),
       })
-      .select("*, profiles(*)")
+      .select("*, profiles:cf_comments_user_id_profiles_fkey(*)")
       .single();
 
     if (insertError) {
