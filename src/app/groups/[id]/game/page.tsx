@@ -18,6 +18,13 @@ const GAMES = [
     description: "ブロックを積んでライン消し！ハイスコアを狙え",
     color: "from-emerald-600 to-cyan-600",
   },
+  {
+    id: "breakout",
+    emoji: "🏓",
+    name: "ブロック崩し",
+    description: "パドルでボールを弾いてブロックを全部壊せ！",
+    color: "from-orange-600 to-red-600",
+  },
 ];
 
 export default function GameHubPage() {
