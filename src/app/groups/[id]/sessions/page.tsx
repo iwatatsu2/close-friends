@@ -45,19 +45,19 @@ export default function SessionsPage() {
     <div className="max-w-lg mx-auto p-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <button onClick={() => router.push(`/groups/${groupId}`)} className="text-muted-foreground text-sm mb-1">
+          <button onClick={() => router.push(`/groups/${groupId}`)} className="text-indigo-400 text-sm mb-1">
             ← タイムラインに戻る
           </button>
-          <h1 className="text-xl font-bold">セッション募集</h1>
+          <h1 className="text-xl font-bold text-white">セッション募集</h1>
         </div>
-        <Button onClick={() => router.push(`/groups/${groupId}/sessions/new`)}>
+        <Button className="bg-indigo-500 hover:bg-indigo-400 text-white" onClick={() => router.push(`/groups/${groupId}/sessions/new`)}>
           募集する
         </Button>
       </div>
 
       {sessions.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
+        <Card className="border-indigo-800 bg-indigo-950/60">
+          <CardContent className="py-12 text-center text-indigo-400">
             <p className="text-3xl mb-2">🎮</p>
             <p>まだセッション募集がありません</p>
             <p className="text-sm mt-1">「募集する」からゲームセッションを作ろう！</p>

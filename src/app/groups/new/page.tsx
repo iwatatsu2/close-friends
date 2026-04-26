@@ -56,31 +56,32 @@ export default function NewGroupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-indigo-800 bg-indigo-950/60 shadow-lg backdrop-blur">
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-center">新しいグループを作成</CardTitle>
+          <CardTitle className="text-xl font-bold text-center text-white">新しいグループを作成</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName">グループ名</Label>
+              <Label htmlFor="groupName" className="text-indigo-200">グループ名</Label>
               <Input
                 id="groupName"
                 type="text"
-                placeholder="例：家族、親友グループ"
+                placeholder="例：APEXランクマ部隊"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
                 disabled={loading}
                 required
+                className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
             {error && (
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-sm text-red-400">{error}</p>
             )}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold"
               disabled={loading || !groupName.trim()}
             >
               {loading ? "作成中..." : "グループを作成"}
@@ -88,7 +89,7 @@ export default function NewGroupPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full border-indigo-600 text-indigo-300 hover:bg-indigo-900/50 hover:text-white"
               onClick={() => router.back()}
               disabled={loading}
             >

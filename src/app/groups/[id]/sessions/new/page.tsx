@@ -56,7 +56,6 @@ export default function NewSessionPage() {
       return;
     }
 
-    // Creator auto-joins
     await supabase.from("cf_session_participants").insert({
       session_id: session.id,
       user_id: user.id,
@@ -68,32 +67,34 @@ export default function NewSessionPage() {
 
   return (
     <div className="max-w-lg mx-auto p-4">
-      <button onClick={() => router.back()} className="text-muted-foreground text-sm mb-4">
+      <button onClick={() => router.back()} className="text-indigo-400 text-sm mb-4">
         ← 戻る
       </button>
 
-      <Card>
+      <Card className="border-indigo-800 bg-indigo-950/60 backdrop-blur">
         <CardHeader>
-          <CardTitle>セッション募集</CardTitle>
+          <CardTitle className="text-white">セッション募集</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>タイトル *</Label>
+              <Label className="text-indigo-200">タイトル *</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="今夜ランクマ回そう！"
                 maxLength={50}
+                className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500"
               />
             </div>
 
             <div>
-              <Label>ゲーム名 *</Label>
+              <Label className="text-indigo-200">ゲーム名 *</Label>
               <Input
                 value={gameName}
                 onChange={(e) => setGameName(e.target.value)}
                 placeholder="ゲーム名を入力"
+                className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500"
               />
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {POPULAR_GAMES.map((g) => (
@@ -103,8 +104,8 @@ export default function NewSessionPage() {
                     onClick={() => setGameName(g)}
                     className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                       gameName === g
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted border-border hover:bg-accent"
+                        ? "bg-indigo-500 text-white border-indigo-500"
+                        : "bg-indigo-900/50 border-indigo-700 text-indigo-300 hover:bg-indigo-800"
                     }`}
                   >
                     {g}
@@ -115,26 +116,28 @@ export default function NewSessionPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>日付 *</Label>
+                <Label className="text-indigo-200">日付 *</Label>
                 <Input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
+                  className="border-indigo-700 bg-indigo-900/50 text-white"
                 />
               </div>
               <div>
-                <Label>時間 *</Label>
+                <Label className="text-indigo-200">時間 *</Label>
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
+                  className="border-indigo-700 bg-indigo-900/50 text-white"
                 />
               </div>
             </div>
 
             <div>
-              <Label>最大人数（任意）</Label>
+              <Label className="text-indigo-200">最大人数（任意）</Label>
               <Input
                 type="number"
                 value={maxPlayers}
@@ -142,12 +145,13 @@ export default function NewSessionPage() {
                 placeholder="制限なし"
                 min={2}
                 max={100}
+                className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500"
               />
             </div>
 
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && <p className="text-red-400 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold" disabled={loading}>
               {loading ? "作成中..." : "セッションを作成"}
             </Button>
           </form>

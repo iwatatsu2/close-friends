@@ -30,7 +30,6 @@ export default function SignupPage() {
       return
     }
 
-    // Create auth user
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -50,7 +49,6 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      // Insert into profiles table
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         display_name: displayName,
@@ -58,7 +56,6 @@ export default function SignupPage() {
       })
 
       if (profileError) {
-        // Profile insert failed but auth user was created — proceed anyway
         console.error('Profile insert error:', profileError.message)
       }
     }
@@ -68,21 +65,19 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center justify-center px-4 py-12">
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
-        {/* Header */}
         <div className="text-center space-y-1">
-          <Link href="/" className="text-3xl block">💌</Link>
-          <h1 className="text-2xl font-bold text-gray-900">新規登録</h1>
-          <p className="text-sm text-gray-500">CloseFriendsを始めましょう</p>
+          <div className="text-3xl">🎮</div>
+          <h1 className="text-2xl font-bold text-white">新規登録</h1>
+          <p className="text-sm text-indigo-300">CloseFriendsを始めましょう</p>
         </div>
 
-        {/* Form card */}
-        <Card className="border-rose-100 shadow-sm">
+        <Card className="border-indigo-800 bg-indigo-950/60 shadow-lg backdrop-blur">
           <CardContent className="pt-6">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="displayName" className="text-gray-700">表示名</Label>
+                <Label htmlFor="displayName" className="text-indigo-200">表示名</Label>
                 <Input
                   id="displayName"
                   type="text"
@@ -91,13 +86,13 @@ export default function SignupPage() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
                   autoComplete="name"
-                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                  className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
                 />
-                <p className="text-xs text-gray-400">グループ内で表示される名前です</p>
+                <p className="text-xs text-indigo-500">グループ内で表示される名前です</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
+                <Label htmlFor="email" className="text-indigo-200">メールアドレス</Label>
                 <Input
                   id="email"
                   type="email"
@@ -106,12 +101,12 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                  className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-gray-700">パスワード</Label>
+                <Label htmlFor="password" className="text-indigo-200">パスワード</Label>
                 <Input
                   id="password"
                   type="password"
@@ -121,12 +116,12 @@ export default function SignupPage() {
                   required
                   autoComplete="new-password"
                   minLength={8}
-                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                  className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
                 />
               </div>
 
               {error && (
-                <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                <p className="text-sm text-red-400 bg-red-900/30 border border-red-800 rounded-md px-3 py-2">
                   {error}
                 </p>
               )}
@@ -134,7 +129,7 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white"
+                className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold"
                 size="lg"
               >
                 {loading ? '登録中...' : '無料で始める'}
@@ -143,10 +138,9 @@ export default function SignupPage() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-indigo-400">
           すでにアカウントをお持ちの方は{' '}
-          <Link href="/login" className="text-rose-500 font-medium hover:underline">
+          <Link href="/login" className="text-indigo-300 font-medium hover:underline">
             ログイン
           </Link>
         </p>

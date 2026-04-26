@@ -40,7 +40,6 @@ export default function InvitePage() {
 
       setGroup(groupData);
 
-      // Check if already a member
       const { data: memberData } = await supabase
         .from("cf_group_members")
         .select("id")
@@ -87,7 +86,7 @@ export default function InvitePage() {
   if (joinState === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">確認中...</p>
+        <p className="text-indigo-400">確認中...</p>
       </div>
     );
   }
@@ -95,13 +94,11 @@ export default function InvitePage() {
   if (joinState === "not_found") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm text-center">
+        <Card className="w-full max-w-sm text-center border-indigo-800 bg-indigo-950/60 backdrop-blur">
           <CardContent className="py-10">
-            <p className="text-lg font-semibold">招待リンクが無効です</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              リンクが正しいか確認してください。
-            </p>
-            <Button className="mt-6 w-full" onClick={() => router.push("/")}>
+            <p className="text-lg font-semibold text-white">招待リンクが無効です</p>
+            <p className="text-sm text-indigo-400 mt-2">リンクが正しいか確認してください。</p>
+            <Button className="mt-6 w-full bg-indigo-500 hover:bg-indigo-400 text-white" onClick={() => router.push("/")}>
               ホームに戻る
             </Button>
           </CardContent>
@@ -113,13 +110,11 @@ export default function InvitePage() {
   if (joinState === "error") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm text-center">
+        <Card className="w-full max-w-sm text-center border-indigo-800 bg-indigo-950/60 backdrop-blur">
           <CardContent className="py-10">
-            <p className="text-lg font-semibold">エラーが発生しました</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              もう一度お試しください。
-            </p>
-            <Button className="mt-6 w-full" onClick={() => router.push("/")}>
+            <p className="text-lg font-semibold text-white">エラーが発生しました</p>
+            <p className="text-sm text-indigo-400 mt-2">もう一度お試しください。</p>
+            <Button className="mt-6 w-full bg-indigo-500 hover:bg-indigo-400 text-white" onClick={() => router.push("/")}>
               ホームに戻る
             </Button>
           </CardContent>
@@ -131,16 +126,14 @@ export default function InvitePage() {
   if (joinState === "already_member" && group) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm text-center">
+        <Card className="w-full max-w-sm text-center border-indigo-800 bg-indigo-950/60 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-xl">{group.name}</CardTitle>
+            <CardTitle className="text-xl text-white">{group.name}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              すでにこのグループのメンバーです。
-            </p>
+            <p className="text-sm text-indigo-400">すでにこのグループのメンバーです。</p>
             <Button
-              className="mt-6 w-full"
+              className="mt-6 w-full bg-indigo-500 hover:bg-indigo-400 text-white"
               onClick={() => router.push(`/groups/${group.id}`)}
             >
               グループを見る
@@ -153,17 +146,17 @@ export default function InvitePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm text-center">
+      <Card className="w-full max-w-sm text-center border-indigo-800 bg-indigo-950/60 backdrop-blur">
         <CardHeader>
-          <CardTitle className="text-xl">グループへの招待</CardTitle>
+          <CardTitle className="text-xl text-white">グループへの招待</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="py-4">
-            <p className="text-sm text-muted-foreground">招待されたグループ</p>
-            <p className="text-2xl font-bold mt-1">{group?.name}</p>
+            <p className="text-sm text-indigo-400">招待されたグループ</p>
+            <p className="text-2xl font-bold mt-1 text-white">{group?.name}</p>
           </div>
           <Button
-            className="w-full"
+            className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold"
             onClick={handleJoin}
             disabled={joining}
           >
@@ -171,7 +164,7 @@ export default function InvitePage() {
           </Button>
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full border-indigo-600 text-indigo-300 hover:bg-indigo-900/50 hover:text-white"
             onClick={() => router.push("/")}
             disabled={joining}
           >

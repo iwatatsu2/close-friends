@@ -93,11 +93,11 @@ export default function CreatePostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen p-4">
       <div className="max-w-lg mx-auto">
-        <Card>
+        <Card className="border-indigo-800 bg-indigo-950/60 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">新しい投稿</CardTitle>
+            <CardTitle className="text-xl font-bold text-white">新しい投稿</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">

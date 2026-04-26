@@ -26,7 +26,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-indigo-950 via-purple-950 to-gray-950 flex flex-col items-center justify-center px-4 py-12">
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         {/* Logo / App name */}
         <div className="text-center space-y-2">

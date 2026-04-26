@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,21 +36,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center justify-center px-4 py-12">
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
-        {/* Header */}
         <div className="text-center space-y-1">
-          <Link href="/" className="text-3xl block">💌</Link>
-          <h1 className="text-2xl font-bold text-gray-900">ログイン</h1>
-          <p className="text-sm text-gray-500">CloseFriendsへようこそ</p>
+          <div className="text-3xl">🎮</div>
+          <h1 className="text-2xl font-bold text-white">ログイン</h1>
+          <p className="text-sm text-indigo-300">CloseFriendsへようこそ</p>
         </div>
 
-        {/* Form card */}
-        <Card className="border-rose-100 shadow-sm">
+        <Card className="border-indigo-800 bg-indigo-950/60 shadow-lg backdrop-blur">
           <CardContent className="pt-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
+                <Label htmlFor="email" className="text-indigo-200">メールアドレス</Label>
                 <Input
                   id="email"
                   type="email"
@@ -59,12 +57,12 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                  className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-gray-700">パスワード</Label>
+                <Label htmlFor="password" className="text-indigo-200">パスワード</Label>
                 <Input
                   id="password"
                   type="password"
@@ -73,12 +71,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="border-gray-200 focus:border-rose-300 focus:ring-rose-200"
+                  className="border-indigo-700 bg-indigo-900/50 text-white placeholder:text-indigo-500 focus:border-indigo-500 focus:ring-indigo-500"
                 />
               </div>
 
               {error && (
-                <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                <p className="text-sm text-red-400 bg-red-900/30 border border-red-800 rounded-md px-3 py-2">
                   {error}
                 </p>
               )}
@@ -86,7 +84,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white"
+                className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold"
                 size="lg"
               >
                 {loading ? 'ログイン中...' : 'ログイン'}
@@ -95,17 +93,11 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Footer links */}
-        <div className="text-center space-y-2 text-sm text-gray-500">
+        <div className="text-center space-y-2 text-sm text-indigo-400">
           <p>
             アカウントをお持ちでない方は{' '}
-            <Link href="/signup" className="text-rose-500 font-medium hover:underline">
+            <Link href="/signup" className="text-indigo-300 font-medium hover:underline">
               新規登録
-            </Link>
-          </p>
-          <p>
-            <Link href="/forgot-password" className="hover:text-gray-700 hover:underline">
-              パスワードをお忘れですか？
             </Link>
           </p>
         </div>
