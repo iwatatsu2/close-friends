@@ -302,6 +302,18 @@ export default function TetrisPage() {
     return () => { if (loopRef.current) cancelAnimationFrame(loopRef.current); };
   }, []);
 
+  // Prevent scrolling/bouncing during gameplay
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    document.body.style.overflow = "hidden";
+    document.addEventListener("touchmove", prevent, { passive: false });
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("touchmove", prevent);
+    };
+  }, [phase]);
+
   // Keyboard controls
   useEffect(() => {
     if (phase !== "playing") return;

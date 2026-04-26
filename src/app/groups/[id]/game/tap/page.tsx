@@ -47,6 +47,18 @@ export default function TapBattlePage() {
     init();
   }, [groupId]);
 
+  // Prevent scrolling/bouncing during gameplay
+  useEffect(() => {
+    if (phase !== "playing" && phase !== "countdown") return;
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    document.body.style.overflow = "hidden";
+    document.addEventListener("touchmove", prevent, { passive: false });
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("touchmove", prevent);
+    };
+  }, [phase]);
+
   async function loadRanking(userId?: string) {
     const uid = userId || userIdRef.current;
     const { data } = await supabase
