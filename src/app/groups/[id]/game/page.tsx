@@ -33,19 +33,22 @@ export default function GamePage() {
   const [saving, setSaving] = useState(false);
   const tapsRef = useRef(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const userIdRef = useRef("");
 
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
       setCurrentUserId(user.id);
+      userIdRef.current = user.id;
       await ensureProfile(supabase, user.id);
-      loadRanking();
+      loadRanking(user.id);
     }
     init();
   }, [groupId]);
 
-  async function loadRanking() {
+  async function loadRanking(userId?: string) {
+    const uid = userId || userIdRef.current;
     const { data } = await supabase
       .from("cf_game_scores")
       .select("*, profiles(*)")
@@ -55,13 +58,13 @@ export default function GamePage() {
       .limit(20);
     if (data) setRanking(data as ScoreEntry[]);
 
-    // Find my best
+    if (!uid) return;
     const { data: myData } = await supabase
       .from("cf_game_scores")
       .select("score")
       .eq("group_id", groupId)
       .eq("game_type", "tap_battle")
-      .eq("user_id", currentUserId)
+      .eq("user_id", uid)
       .order("score", { ascending: false })
       .limit(1);
     if (myData && myData.length > 0) setMyBest(myData[0].score);
@@ -103,11 +106,11 @@ export default function GamePage() {
   }, [phase]);
 
   async function saveScore() {
-    if (saving) return;
+    if (saving || !userIdRef.current) return;
     setSaving(true);
     await supabase.from("cf_game_scores").insert({
       group_id: groupId,
-      user_id: currentUserId,
+      user_id: userIdRef.current,
       game_type: "tap_battle",
       score: taps,
     });
