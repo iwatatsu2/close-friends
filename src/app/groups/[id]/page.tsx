@@ -97,6 +97,17 @@ export default function GroupTimelinePage() {
         </div>
       </div>
 
+      {/* Group photo banner */}
+      <div className="max-w-lg mx-auto px-4 pt-4">
+        <div className="relative rounded-2xl overflow-hidden border border-indigo-700 shadow-lg">
+          <img src="/group-photo.png" alt="仲間たち" className="w-full h-32 object-cover object-top" />
+          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/90 via-indigo-950/30 to-transparent" />
+          <div className="absolute bottom-2 left-3">
+            <p className="text-white text-xs font-bold drop-shadow-lg">🎮 最強の宴メン</p>
+          </div>
+        </div>
+      </div>
+
       {/* Posts */}
       <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
         {posts.length === 0 ? (
