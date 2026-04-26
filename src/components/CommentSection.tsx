@@ -10,6 +10,7 @@ import { Loader2, SendHorizonal } from "lucide-react";
 
 interface CommentSectionProps {
   postId: string;
+  groupId: string;
   comments: Comment[];
   currentUserId: string;
   onNewComment?: (comment: Comment) => void;
@@ -27,6 +28,7 @@ function timeAgo(dateStr: string): string {
 
 export default function CommentSection({
   postId,
+  groupId,
   comments: initialComments,
   currentUserId,
   onNewComment,
@@ -55,6 +57,17 @@ export default function CommentSection({
     if (insertError) {
       setError("コメントの送信に失敗しました");
     } else if (data) {
+      fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupId,
+          title: "新しいコメント",
+          body: text.trim().slice(0, 50),
+          url: `/groups/${groupId}`,
+          excludeUserId: currentUserId,
+        }),
+      }).catch(() => {});
       const newComment = data as Comment;
       setComments((prev) => [...prev, newComment]);
       onNewComment?.(newComment);

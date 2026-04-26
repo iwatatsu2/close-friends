@@ -82,6 +82,19 @@ export default function CreatePostPage() {
 
       if (insertError) throw insertError;
 
+      // Send push notification to group members
+      fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupId: id,
+          title: "新しい投稿",
+          body: content.trim().slice(0, 50),
+          url: `/groups/${id}`,
+          excludeUserId: user.id,
+        }),
+      }).catch(() => {});
+
       router.push(`/groups/${id}`);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : JSON.stringify(err);

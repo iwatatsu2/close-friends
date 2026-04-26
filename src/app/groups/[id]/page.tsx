@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PostCard from "@/components/PostCard";
+import { registerPushSubscription } from "@/lib/push";
 import type { Group, Post } from "@/lib/types";
 
 export default function GroupTimelinePage() {
@@ -29,6 +30,7 @@ export default function GroupTimelinePage() {
       }
 
       setCurrentUserId(user.id);
+      registerPushSubscription(user.id);
 
       const [{ data: groupData }, { data: postsData }] = await Promise.all([
         supabase.from("cf_groups").select("*").eq("id", id).single(),
@@ -104,7 +106,7 @@ export default function GroupTimelinePage() {
           </Card>
         ) : (
           posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+            <PostCard key={post.id} post={post} currentUserId={currentUserId} groupId={id} />
           ))
         )}
       </div>

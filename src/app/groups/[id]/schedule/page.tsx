@@ -178,20 +178,55 @@ export default function SchedulePage() {
       </div>
 
       {editingDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onClick={() => setEditingDate(null)}>
-          <div className="bg-indigo-950 border-t border-indigo-800 w-full max-w-lg rounded-t-xl p-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-semibold mb-3 text-white">遊べる時間帯</h3>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4" onClick={() => setEditingDate(null)}>
+          <div className="bg-indigo-950 border border-indigo-800 w-full max-w-sm rounded-xl p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold mb-4 text-white text-center">遊べる時間帯</h3>
+            <div className="space-y-3 mb-5">
               <div>
-                <label className="text-sm text-indigo-400">開始</label>
-                <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="border-indigo-700 bg-indigo-900/50 text-white" />
+                <label className="text-sm text-indigo-400 block mb-1">開始時間</label>
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => {
+                    setStartTime(e.target.value);
+                    if (e.target.value >= endTime) {
+                      const [h, m] = e.target.value.split(":").map(Number);
+                      setEndTime(`${String(Math.min(h + 2, 23)).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+                    }
+                  }}
+                  className="border-indigo-700 bg-indigo-900/50 text-white w-full"
+                />
               </div>
               <div>
-                <label className="text-sm text-indigo-400">終了</label>
-                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="border-indigo-700 bg-indigo-900/50 text-white" />
+                <label className="text-sm text-indigo-400 block mb-1">終了時間</label>
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  min={startTime}
+                  className="border-indigo-700 bg-indigo-900/50 text-white w-full"
+                />
+                {endTime <= startTime && (
+                  <p className="text-xs text-red-400 mt-1">終了時間は開始時間より後にしてください</p>
+                )}
               </div>
             </div>
-            <Button className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold" onClick={saveAvailability}>登録する</Button>
+            <div className="space-y-2">
+              <Button
+                className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold"
+                onClick={saveAvailability}
+                disabled={endTime <= startTime}
+              >
+                登録する
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-indigo-400 hover:text-indigo-300"
+                onClick={() => setEditingDate(null)}
+              >
+                キャンセル
+              </Button>
+            </div>
           </div>
         </div>
       )}

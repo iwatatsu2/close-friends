@@ -11,6 +11,7 @@ import CommentSection from "./CommentSection";
 interface PostCardProps {
   post: Post;
   currentUserId: string;
+  groupId: string;
   onReaction?: () => void;
 }
 
@@ -25,7 +26,7 @@ function timeAgo(dateStr: string): string {
   return `${days}日前`;
 }
 
-export default function PostCard({ post, currentUserId, onReaction }: PostCardProps) {
+export default function PostCard({ post, currentUserId, groupId, onReaction }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [localComments, setLocalComments] = useState(post.comments ?? []);
 
@@ -101,6 +102,7 @@ export default function PostCard({ post, currentUserId, onReaction }: PostCardPr
           <div className="mt-3 border-t pt-3">
             <CommentSection
               postId={post.id}
+              groupId={groupId}
               comments={localComments}
               currentUserId={currentUserId}
               onNewComment={(c) => setLocalComments((prev) => [...prev, c])}
