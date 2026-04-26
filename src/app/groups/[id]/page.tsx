@@ -147,11 +147,11 @@ export default function GroupTimelinePage() {
             タイムライン
           </button>
           <button
-            onClick={() => router.push(`/groups/${id}/sessions`)}
+            onClick={() => router.push(`/groups/${id}/game`)}
             className="flex-1 py-3 text-center text-xs text-indigo-500 hover:text-indigo-300"
           >
-            <span className="text-lg block">🎮</span>
-            セッション
+            <span className="text-lg block">⚔️</span>
+            バトル
           </button>
           <button
             onClick={() => router.push(`/groups/${id}/schedule`)}
