@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import webpush from "web-push";
 
-webpush.setVapidDetails(
-  "mailto:noreply@closefriends.app",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
 export async function POST(req: NextRequest) {
+  const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+  if (!vapidPublic || !vapidPrivate) {
+    return NextResponse.json({ sent: 0, error: "VAPID keys not configured" });
+  }
+  webpush.setVapidDetails("mailto:noreply@closefriends.app", vapidPublic, vapidPrivate);
+
   const { groupId, title, body, url, excludeUserId } = await req.json();
 
   const supabase = await createClient();
