@@ -11,9 +11,9 @@ const CANVAS_W = 300;
 const CANVAS_H = 500;
 const WALL_W = 8;
 const FLOOR_Y = CANVAS_H - WALL_W;
-const GRAVITY = 0.3;
-const BOUNCE = 0.3;
-const FRICTION = 0.98;
+const GRAVITY = 0.4;
+const BOUNCE = 0.1;
+const FRICTION = 0.92;
 const GAME_OVER_LINE = 80;
 
 // Fruits: index 0-10, each merges into next
@@ -245,7 +245,7 @@ export default function SuikaPage() {
           const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
           const dvDotN = dvx * nx + dvy * ny;
           if (dvDotN > 0) {
-            const restitution = 0.3;
+            const restitution = 0.15;
             a.vx -= dvDotN * nx * restitution;
             a.vy -= dvDotN * ny * restitution;
             b.vx += dvDotN * nx * restitution;
