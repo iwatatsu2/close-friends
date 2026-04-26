@@ -108,12 +108,16 @@ export default function GamePage() {
   async function saveScore() {
     if (saving || !userIdRef.current) return;
     setSaving(true);
-    await supabase.from("cf_game_scores").insert({
+    const { error } = await supabase.from("cf_game_scores").insert({
       group_id: groupId,
       user_id: userIdRef.current,
       game_type: "tap_battle",
       score: taps,
     });
+    if (error) {
+      alert("保存エラー: " + error.message);
+      console.error("saveScore error:", error);
+    }
     await loadRanking();
     setSaving(false);
   }
