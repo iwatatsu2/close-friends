@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,6 +34,22 @@ export default async function HomePage() {
           <div className="text-5xl">🎮</div>
           <h1 className="text-3xl font-bold tracking-tight text-white">CloseFriends</h1>
           <p className="text-sm text-indigo-300">いつメンとつながる、秘密基地</p>
+        </div>
+
+        {/* Group photo */}
+        <div className="relative rounded-2xl overflow-hidden border-2 border-indigo-600 shadow-2xl shadow-indigo-500/20">
+          <Image
+            src="/group-photo.png"
+            alt="仲間たちの写真"
+            width={600}
+            height={400}
+            className="w-full object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/80 via-transparent to-transparent" />
+          <div className="absolute bottom-3 left-4 right-4">
+            <p className="text-white text-sm font-bold drop-shadow-lg">最強の宴メン、ここに集結。</p>
+          </div>
         </div>
 
         {/* Feature highlights */}

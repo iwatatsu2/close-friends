@@ -106,17 +106,29 @@ export default function ProfileSetupPage() {
         setUploading(false)
       }
 
-      const { error: updateError } = await supabase
+      // まずupdateを試みる
+      const { error: updateError, count } = await supabase
         .from('profiles')
-        .upsert({
-          id: userId,
+        .update({
           display_name: displayName.trim(),
           bio: bio.trim() || null,
           avatar_url: newAvatarUrl,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' })
+        })
+        .eq('id', userId)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        // updateが失敗したらinsertを試みる
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            display_name: displayName.trim(),
+            bio: bio.trim() || null,
+            avatar_url: newAvatarUrl,
+          })
+        if (insertError) throw insertError
+      }
 
       setAvatarUrl(newAvatarUrl)
       setAvatarFile(null)
