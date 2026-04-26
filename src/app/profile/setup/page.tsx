@@ -138,15 +138,15 @@ export default function ProfileSetupPage() {
                   className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-semibold disabled:opacity-50"
                   size="lg"
                 >
-                  {loading ? '保存中...' : '保存してはじめる'}
+                  {loading ? '保存中...' : '保存する'}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   className="w-full text-indigo-400 hover:text-indigo-300"
-                  onClick={() => router.push('/')}
+                  onClick={() => router.back()}
                 >
-                  スキップ
+                  戻る
                 </Button>
               </div>
             </form>

@@ -141,6 +141,13 @@ export default function GroupTimelinePage() {
             <span className="text-lg block">📅</span>
             スケジュール
           </button>
+          <button
+            onClick={() => router.push("/profile/setup")}
+            className="flex-1 py-3 text-center text-xs text-indigo-500 hover:text-indigo-300"
+          >
+            <span className="text-lg block">👤</span>
+            プロフィール
+          </button>
         </div>
       </nav>
     </div>
