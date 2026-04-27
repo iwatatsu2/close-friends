@@ -70,7 +70,7 @@ export default function PostCard({ post, currentUserId, groupId, onReaction }: P
             <img
               src={post.image_url}
               alt="投稿画像"
-              className="w-full object-cover max-h-80"
+              className="w-full object-contain"
             />
           </div>
         )}
