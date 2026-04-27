@@ -98,6 +98,7 @@ export default function ZombiePage() {
   const weaponsRef = useRef<Weapon[]>([]);
   const invincibleRef = useRef(0);
   const facingRef = useRef(1); // 1=right, -1=left
+  const dirRef = useRef({ x: 0, y: 0 }); // D-pad direction
 
   // Load images
   useEffect(() => {
@@ -346,19 +347,17 @@ export default function ZombiePage() {
 
   const update = useCallback((dt: number) => {
     const p = playerRef.current;
-    const target = moveTargetRef.current;
+    const dir = dirRef.current;
     elapsedRef.current += dt;
 
-    // Move player toward target
-    const pdx = target.x - p.x, pdy = target.y - p.y;
-    const pdist = Math.hypot(pdx, pdy);
-    if (pdist > 3) {
-      const speed = 2.2;
-      p.x += (pdx / pdist) * speed;
-      p.y += (pdy / pdist) * speed;
-      facingRef.current = pdx > 0 ? 1 : -1;
+    // Move player by D-pad direction
+    const speed = 2.5;
+    if (dir.x !== 0 || dir.y !== 0) {
+      const len = Math.hypot(dir.x, dir.y);
+      p.x += (dir.x / len) * speed;
+      p.y += (dir.y / len) * speed;
+      if (dir.x !== 0) facingRef.current = dir.x > 0 ? 1 : -1;
     }
-    // No boundary clamping - free roaming in infinite space (camera follows)
 
     if (invincibleRef.current > 0) invincibleRef.current--;
 
@@ -738,44 +737,33 @@ export default function ZombiePage() {
     loopRef.current = requestAnimationFrame(loop);
   }, [update, draw]);
 
-  // Touch/mouse controls - relative movement (joystick style)
+  // D-pad control handlers
+  const dpadPress = useCallback((dx: number, dy: number) => {
+    dirRef.current = { x: dx, y: dy };
+  }, []);
+  const dpadRelease = useCallback(() => {
+    dirRef.current = { x: 0, y: 0 };
+  }, []);
+
+  // Keyboard controls (for desktop testing)
   useEffect(() => {
     if (phase !== "playing") return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const getPos = (clientX: number, clientY: number) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = W / rect.width;
-      const scaleY = H / rect.height;
-      return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    const keys = new Set<string>();
+    const updateDir = () => {
+      let dx = 0, dy = 0;
+      if (keys.has("ArrowLeft") || keys.has("a")) dx -= 1;
+      if (keys.has("ArrowRight") || keys.has("d")) dx += 1;
+      if (keys.has("ArrowUp") || keys.has("w")) dy -= 1;
+      if (keys.has("ArrowDown") || keys.has("s")) dy += 1;
+      dirRef.current = { x: dx, y: dy };
     };
-
-    const onTouch = (e: TouchEvent) => {
-      e.preventDefault();
-      const pos = getPos(e.touches[0].clientX, e.touches[0].clientY);
-      // Convert screen position to world position
-      const camX = playerRef.current.x - W / 2;
-      const camY = playerRef.current.y - H / 2;
-      moveTargetRef.current = { x: pos.x + camX, y: pos.y + camY };
-    };
-    const onMouse = (e: MouseEvent) => {
-      const pos = getPos(e.clientX, e.clientY);
-      const camX = playerRef.current.x - W / 2;
-      const camY = playerRef.current.y - H / 2;
-      moveTargetRef.current = { x: pos.x + camX, y: pos.y + camY };
-    };
-
-    canvas.addEventListener("touchstart", onTouch, { passive: false });
-    canvas.addEventListener("touchmove", onTouch, { passive: false });
-    canvas.addEventListener("mousemove", onMouse);
-    canvas.addEventListener("click", onMouse);
-
+    const onDown = (e: KeyboardEvent) => { keys.add(e.key); updateDir(); };
+    const onUp = (e: KeyboardEvent) => { keys.delete(e.key); updateDir(); };
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
     return () => {
-      canvas.removeEventListener("touchstart", onTouch);
-      canvas.removeEventListener("touchmove", onTouch);
-      canvas.removeEventListener("mousemove", onMouse);
-      canvas.removeEventListener("click", onMouse);
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
     };
   }, [phase]);
 
@@ -828,7 +816,7 @@ export default function ZombiePage() {
             <CardContent className="py-12 flex flex-col items-center">
               <div className="text-6xl mb-4">🧟</div>
               <p className="text-indigo-300 text-sm mb-2">360度から押し寄せるゾンビの群れを生き延びろ！</p>
-              <p className="text-indigo-400 text-xs mb-1">指で移動 — 攻撃は全自動</p>
+              <p className="text-indigo-400 text-xs mb-1">十字キーで移動 — 攻撃は全自動</p>
               <p className="text-indigo-400 text-xs mb-1">ジェムでレベルUP → 武器を選択強化</p>
               <p className="text-indigo-400 text-xs mb-6">長く生き残るほど高スコア！</p>
               <Button onClick={startGame} className="bg-red-700 hover:bg-red-600 text-white font-bold text-lg px-10 py-6" size="lg">
@@ -876,6 +864,49 @@ export default function ZombiePage() {
                   </div>
                 </div>
               )}
+            </div>
+            {/* Game Boy style D-pad */}
+            <div className="flex justify-center mt-3 select-none" style={{ touchAction: "none" }}>
+              <div className="relative" style={{ width: 140, height: 140 }}>
+                {/* Up */}
+                <button
+                  className="absolute left-1/2 top-0 -translate-x-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-t-xl border-2 border-gray-600 flex items-center justify-center text-white text-xl font-bold shadow-lg"
+                  onTouchStart={(e) => { e.preventDefault(); dpadPress(dirRef.current.x, -1); }}
+                  onTouchEnd={(e) => { e.preventDefault(); dpadRelease(); }}
+                  onMouseDown={() => dpadPress(0, -1)}
+                  onMouseUp={dpadRelease}
+                  onMouseLeave={dpadRelease}
+                >▲</button>
+                {/* Down */}
+                <button
+                  className="absolute left-1/2 bottom-0 -translate-x-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-b-xl border-2 border-gray-600 flex items-center justify-center text-white text-xl font-bold shadow-lg"
+                  onTouchStart={(e) => { e.preventDefault(); dpadPress(dirRef.current.x, 1); }}
+                  onTouchEnd={(e) => { e.preventDefault(); dpadRelease(); }}
+                  onMouseDown={() => dpadPress(0, 1)}
+                  onMouseUp={dpadRelease}
+                  onMouseLeave={dpadRelease}
+                >▼</button>
+                {/* Left */}
+                <button
+                  className="absolute top-1/2 left-0 -translate-y-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-l-xl border-2 border-gray-600 flex items-center justify-center text-white text-xl font-bold shadow-lg"
+                  onTouchStart={(e) => { e.preventDefault(); dpadPress(-1, dirRef.current.y); }}
+                  onTouchEnd={(e) => { e.preventDefault(); dpadRelease(); }}
+                  onMouseDown={() => dpadPress(-1, 0)}
+                  onMouseUp={dpadRelease}
+                  onMouseLeave={dpadRelease}
+                >◀</button>
+                {/* Right */}
+                <button
+                  className="absolute top-1/2 right-0 -translate-y-1/2 w-12 h-12 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-r-xl border-2 border-gray-600 flex items-center justify-center text-white text-xl font-bold shadow-lg"
+                  onTouchStart={(e) => { e.preventDefault(); dpadPress(1, dirRef.current.y); }}
+                  onTouchEnd={(e) => { e.preventDefault(); dpadRelease(); }}
+                  onMouseDown={() => dpadPress(1, 0)}
+                  onMouseUp={dpadRelease}
+                  onMouseLeave={dpadRelease}
+                >▶</button>
+                {/* Center */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gray-800 border-2 border-gray-700 rounded-sm" />
+              </div>
             </div>
           </>
         )}
