@@ -46,6 +46,13 @@ const GAMES = [
     description: "画面が光った瞬間にタップ！反射神経で勝負！",
     color: "from-rose-600 to-pink-600",
   },
+  {
+    id: "zombie",
+    emoji: "🧟",
+    name: "ゾンビサバイバル",
+    description: "360度から来るゾンビを倒して生き残れ！",
+    color: "from-zinc-700 to-red-900",
+  },
 ];
 
 export default function GameHubPage() {
