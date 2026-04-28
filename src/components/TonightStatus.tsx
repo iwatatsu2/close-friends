@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -30,66 +30,22 @@ function getJSTToday(): string {
 }
 
 export default function TonightStatus({ groupId, currentUserId }: TonightStatusProps) {
-  const [supabase] = useState(() => createClient());
+  const supabaseRef = useRef(createClient());
   const [myStatus, setMyStatus] = useState<string | null>(null);
   const [members, setMembers] = useState<MemberStatus[]>([]);
   const [loading, setLoading] = useState(false);
   const [myName, setMyName] = useState("自分");
+  const [initialized, setInitialized] = useState(false);
 
   const today = getJSTToday();
 
-  const loadStatuses = useCallback(async () => {
-    if (!currentUserId || !groupId) return;
-
-    try {
-      // Fetch statuses
-      const { data: statusData, error: statusErr } = await supabase
-        .from("cf_tonight_status")
-        .select("user_id, status")
-        .eq("group_id", groupId)
-        .eq("date", today);
-
-      if (statusErr) {
-        console.error("loadStatuses error:", statusErr);
-        return;
-      }
-
-      if (!statusData || statusData.length === 0) {
-        setMembers([]);
-        setMyStatus(null);
-        return;
-      }
-
-      // Fetch profiles separately
-      const userIds = statusData.map((d: any) => d.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url")
-        .in("id", userIds);
-
-      const profileMap = new Map<string, any>();
-      (profiles || []).forEach((p: any) => profileMap.set(p.id, p));
-
-      const mapped: MemberStatus[] = statusData.map((d: any) => ({
-        user_id: d.user_id,
-        status: d.status,
-        display_name: profileMap.get(d.user_id)?.display_name ?? "?",
-        avatar_url: profileMap.get(d.user_id)?.avatar_url ?? null,
-      }));
-
-      setMembers(mapped);
-
-      const mine = mapped.find((m) => m.user_id === currentUserId);
-      setMyStatus(mine?.status ?? null);
-      if (mine) setMyName(mine.display_name);
-    } catch (e) {
-      console.error("loadStatuses exception:", e);
-    }
-  }, [supabase, groupId, currentUserId, today]);
-
-  // Load my profile name once
+  // Load statuses once on mount (when currentUserId is available)
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId || !groupId || initialized) return;
+
+    const supabase = supabaseRef.current;
+
+    // Load my profile name
     supabase
       .from("profiles")
       .select("display_name")
@@ -98,18 +54,61 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
       .then(({ data }) => {
         if (data?.display_name) setMyName(data.display_name);
       });
-  }, [currentUserId]);
 
-  useEffect(() => {
-    loadStatuses();
-  }, [loadStatuses]);
+    // Load existing statuses
+    (async () => {
+      try {
+        const { data: statusData, error } = await supabase
+          .from("cf_tonight_status")
+          .select("user_id, status")
+          .eq("group_id", groupId)
+          .eq("date", today);
 
-  async function setStatus(statusKey: string) {
+        if (error) {
+          console.error("loadStatuses error:", error);
+          setInitialized(true);
+          return;
+        }
+
+        if (statusData && statusData.length > 0) {
+          const userIds = statusData.map((d: any) => d.user_id);
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, display_name, avatar_url")
+            .in("id", userIds);
+
+          const profileMap = new Map<string, any>();
+          (profiles || []).forEach((p: any) => profileMap.set(p.id, p));
+
+          const mapped: MemberStatus[] = statusData.map((d: any) => ({
+            user_id: d.user_id,
+            status: d.status,
+            display_name: profileMap.get(d.user_id)?.display_name ?? "?",
+            avatar_url: profileMap.get(d.user_id)?.avatar_url ?? null,
+          }));
+
+          setMembers(mapped);
+          const mine = mapped.find((m) => m.user_id === currentUserId);
+          if (mine) {
+            setMyStatus(mine.status);
+            setMyName(mine.display_name);
+          }
+        }
+      } catch (e) {
+        console.error("loadStatuses exception:", e);
+      }
+      setInitialized(true);
+    })();
+  }, [currentUserId, groupId, today, initialized]);
+
+  async function handleSetStatus(statusKey: string) {
     if (loading || !currentUserId) return;
     setLoading(true);
 
+    const supabase = supabaseRef.current;
+
     if (myStatus === statusKey) {
-      // Toggle off - optimistic
+      // Toggle off
       setMyStatus(null);
       setMembers((prev) => prev.filter((m) => m.user_id !== currentUserId));
 
@@ -120,17 +119,20 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
         .eq("user_id", currentUserId)
         .eq("date", today);
     } else {
-      // Set status - optimistic update immediately
+      // Set new status - optimistic update
+      const newMember: MemberStatus = {
+        user_id: currentUserId,
+        status: statusKey,
+        display_name: myName,
+        avatar_url: null,
+      };
       setMyStatus(statusKey);
       setMembers((prev) => {
         const others = prev.filter((m) => m.user_id !== currentUserId);
-        return [
-          ...others,
-          { user_id: currentUserId, status: statusKey, display_name: myName, avatar_url: null },
-        ];
+        return [...others, newMember];
       });
 
-      // Write to DB (delete + insert for reliability)
+      // DB: delete then insert
       await supabase
         .from("cf_tonight_status")
         .delete()
@@ -149,10 +151,7 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
         });
 
       if (error) {
-        console.error("setStatus error:", error);
-        // Revert optimistic update on error
-        setMyStatus(null);
-        setMembers((prev) => prev.filter((m) => m.user_id !== currentUserId));
+        console.error("setStatus insert error:", error);
       }
     }
 
@@ -177,7 +176,7 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
         {STATUSES.map((s) => (
           <button
             key={s.key}
-            onClick={() => setStatus(s.key)}
+            onClick={() => handleSetStatus(s.key)}
             disabled={loading}
             className={`flex flex-col items-center gap-0.5 py-2 px-1 rounded-xl border text-center transition-all ${
               myStatus === s.key
@@ -191,7 +190,7 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
         ))}
       </div>
 
-      {/* Member statuses - always show */}
+      {/* Member statuses */}
       {members.length > 0 ? (
         <div className="space-y-1.5">
           {members.map((m) => {
