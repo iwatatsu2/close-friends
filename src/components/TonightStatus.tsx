@@ -163,7 +163,7 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
   return (
     <div className="border border-indigo-700 bg-indigo-950/60 rounded-2xl p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-white">🌙 今夜やれる？</h3>
+        <h3 className="text-sm font-bold text-white">🌙 今夜どうする？</h3>
         {readyCount > 0 && (
           <span className="text-xs bg-green-900/60 text-green-300 px-2 py-0.5 rounded-full">
             {readyCount}人参戦OK
