@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,11 +28,13 @@ type Weapon = {
   damage: number;
 };
 
+// Zombie types: 0=skeleton, 1=boss(demon), 2=fat, 3=crawler, 4=boss2(necromancer)
 type Zombie = { x: number; y: number; hp: number; maxHp: number; speed: number; type: number; flash: number };
 type Bullet = { x: number; y: number; dx: number; dy: number; damage: number; piercing: number; life: number };
 type OrbitBullet = { angle: number; damage: number; radius: number };
 type Particle = { x: number; y: number; dx: number; dy: number; life: number; color: string; size: number };
 type Gem = { x: number; y: number; value: number };
+type DropItem = { x: number; y: number; type: "health" | "shield"; life: number };
 type AreaEffect = { x: number; y: number; radius: number; life: number; maxLife: number; damage: number };
 
 type Upgrade = {
@@ -70,11 +73,19 @@ export default function ZombiePage() {
   // Images
   const imgRef = useRef<{
     player?: HTMLImageElement;
+    playerUp?: HTMLImageElement;
+    playerDown?: HTMLImageElement;
     zombie?: HTMLImageElement;
+    zombie2?: HTMLImageElement;
+    zombie3?: HTMLImageElement;
+    zombie4?: HTMLImageElement;
     boss?: HTMLImageElement;
+    boss2?: HTMLImageElement;
     bullet?: HTMLImageElement;
     bgTile?: HTMLImageElement;
     levelup?: HTMLImageElement;
+    health?: HTMLImageElement;
+    shield?: HTMLImageElement;
   }>({});
 
   // Game state
@@ -86,6 +97,8 @@ export default function ZombiePage() {
   const particlesRef = useRef<Particle[]>([]);
   const gemsRef = useRef<Gem[]>([]);
   const areaEffectsRef = useRef<AreaEffect[]>([]);
+  const dropsRef = useRef<DropItem[]>([]);
+  const shieldTimerRef = useRef(0);
   const scoreRef = useRef(0);
   const xpRef = useRef(0);
   const xpToNextRef = useRef(5);
@@ -97,18 +110,26 @@ export default function ZombiePage() {
   const killCountRef = useRef(0);
   const weaponsRef = useRef<Weapon[]>([]);
   const invincibleRef = useRef(0);
-  const facingRef = useRef(1); // 1=right, -1=left
+  const facingRef = useRef<"right" | "left" | "up" | "down">("right");
   const dirRef = useRef({ x: 0, y: 0 }); // D-pad direction
 
   // Load images
   useEffect(() => {
     const names: [string, keyof typeof imgRef.current][] = [
       ["/game/zombie/player.png", "player"],
+      ["/game/zombie/player-up.png", "playerUp"],
+      ["/game/zombie/player-down.png", "playerDown"],
       ["/game/zombie/zombie.png", "zombie"],
+      ["/game/zombie/zombie2.png", "zombie2"],
+      ["/game/zombie/zombie3.png", "zombie3"],
+      ["/game/zombie/zombie4.png", "zombie4"],
       ["/game/zombie/boss.png", "boss"],
+      ["/game/zombie/boss2.png", "boss2"],
       ["/game/zombie/bullet.png", "bullet"],
       ["/game/zombie/bg-tile.png", "bgTile"],
       ["/game/zombie/levelup.png", "levelup"],
+      ["/game/zombie/health.png", "health"],
+      ["/game/zombie/shield.png", "shield"],
     ];
     for (const [src, key] of names) {
       const img = new Image();
@@ -119,7 +140,7 @@ export default function ZombiePage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
       if (!user) { router.push("/login"); return; }
       userIdRef.current = user.id;
       await ensureProfile(supabase, user.id);
@@ -158,12 +179,37 @@ export default function ZombiePage() {
     const y = p.y + Math.sin(angle) * dist;
 
     const wave = Math.floor(elapsedRef.current / 15000);
-    const isBoss = wave > 0 && Math.random() < 0.05 + wave * 0.015;
-    const hp = isBoss ? 8 + wave * 4 : 1 + Math.floor(wave * 0.4);
-    const speed = ZOMBIE_BASE_SPEED + wave * 0.06 + (isBoss ? -0.15 : Math.random() * 0.25);
-    const type = isBoss ? 1 : 0;
+    const bossRoll = Math.random();
+    const isBoss1 = wave > 0 && bossRoll < 0.04 + wave * 0.01;
+    const isBoss2 = wave > 2 && !isBoss1 && bossRoll < 0.06 + wave * 0.008;
 
-    zombiesRef.current.push({ x, y, hp, maxHp: hp, speed, type, flash: 0 });
+    if (isBoss1 || isBoss2) {
+      const type = isBoss2 ? 4 : 1;
+      const hp = type === 4 ? 12 + wave * 5 : 8 + wave * 4;
+      const speed = ZOMBIE_BASE_SPEED + wave * 0.04 - 0.15;
+      zombiesRef.current.push({ x, y, hp, maxHp: hp, speed, type, flash: 0 });
+    } else {
+      // Regular zombie variants: 0=skeleton, 2=fat(slow,tanky), 3=crawler(fast,weak)
+      const roll = Math.random();
+      let type: number, hp: number, speed: number;
+      if (roll < 0.15 && wave >= 1) {
+        // Fat zombie - slow but tanky
+        type = 2;
+        hp = 2 + Math.floor(wave * 0.6);
+        speed = ZOMBIE_BASE_SPEED * 0.7 + wave * 0.03;
+      } else if (roll < 0.30 && wave >= 2) {
+        // Crawler zombie - fast but fragile
+        type = 3;
+        hp = 1;
+        speed = ZOMBIE_BASE_SPEED * 1.8 + wave * 0.08;
+      } else {
+        // Skeleton (default)
+        type = 0;
+        hp = 1 + Math.floor(wave * 0.4);
+        speed = ZOMBIE_BASE_SPEED + wave * 0.06 + Math.random() * 0.25;
+      }
+      zombiesRef.current.push({ x, y, hp, maxHp: hp, speed, type, flash: 0 });
+    }
   }, []);
 
   const addParticles = useCallback((x: number, y: number, color: string, count: number, size = 2) => {
@@ -356,8 +402,15 @@ export default function ZombiePage() {
       const len = Math.hypot(dir.x, dir.y);
       p.x += (dir.x / len) * speed;
       p.y += (dir.y / len) * speed;
-      if (dir.x !== 0) facingRef.current = dir.x > 0 ? 1 : -1;
+      // Update facing direction (prioritize horizontal for diagonal)
+      if (Math.abs(dir.x) >= Math.abs(dir.y)) {
+        facingRef.current = dir.x > 0 ? "right" : "left";
+      } else {
+        facingRef.current = dir.y > 0 ? "down" : "up";
+      }
     }
+
+    if (shieldTimerRef.current > 0) shieldTimerRef.current--;
 
     if (invincibleRef.current > 0) invincibleRef.current--;
 
@@ -428,14 +481,21 @@ export default function ZombiePage() {
       if (z.flash > 0) z.flash--;
 
       if (z.hp <= 0) {
-        const pts = z.type === 1 ? 50 : 10;
+        const isBoss = z.type === 1 || z.type === 4;
+        const pts = isBoss ? 50 : (z.type === 2 ? 15 : z.type === 3 ? 8 : 10);
         scoreRef.current += pts;
         killCountRef.current++;
         setScore(scoreRef.current);
-        addParticles(z.x, z.y, z.type === 1 ? "#ef4444" : "#22c55e", z.type === 1 ? 12 : 5);
+        const colors: Record<number, string> = { 0: "#22c55e", 1: "#ef4444", 2: "#a855f7", 3: "#f43f5e", 4: "#7c3aed" };
+        addParticles(z.x, z.y, colors[z.type] || "#22c55e", isBoss ? 12 : 5);
         // Drop XP gem
-        const gemValue = z.type === 1 ? 3 : 1;
+        const gemValue = isBoss ? 3 : 1;
         gemsRef.current.push({ x: z.x, y: z.y, value: gemValue });
+        // Chance to drop health or shield
+        if (isBoss || Math.random() < 0.03) {
+          const dropType = Math.random() < 0.6 ? "health" : "shield";
+          dropsRef.current.push({ x: z.x, y: z.y, type: dropType as "health" | "shield", life: 600 });
+        }
         return false;
       }
 
@@ -447,8 +507,8 @@ export default function ZombiePage() {
         z.y += (dy / dist) * z.speed;
       }
 
-      // Hit player
-      if (dist < PLAYER_R + ZOMBIE_R && invincibleRef.current <= 0) {
+      // Hit player (shield blocks damage)
+      if (dist < PLAYER_R + ZOMBIE_R && invincibleRef.current <= 0 && shieldTimerRef.current <= 0) {
         hpRef.current--;
         setDisplayHp(hpRef.current);
         invincibleRef.current = 60;
@@ -475,6 +535,26 @@ export default function ZombiePage() {
         xpRef.current += g.value;
         addParticles(g.x, g.y, "#818cf8", 4, 1.5);
         checkLevelUp();
+        return false;
+      }
+      return true;
+    });
+
+    // Update drop items
+    dropsRef.current = dropsRef.current.filter(d => {
+      d.life--;
+      if (d.life <= 0) return false;
+      const dx = p.x - d.x, dy = p.y - d.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < PLAYER_R + 10) {
+        if (d.type === "health") {
+          hpRef.current = Math.min(hpRef.current + 2, maxHpRef.current);
+          setDisplayHp(hpRef.current);
+          addParticles(d.x, d.y, "#ef4444", 8, 2);
+        } else {
+          shieldTimerRef.current = 300; // ~5 seconds
+          addParticles(d.x, d.y, "#60a5fa", 8, 2);
+        }
         return false;
       }
       return true;
@@ -571,10 +651,17 @@ export default function ZombiePage() {
     for (const z of zombiesRef.current) {
       const sx = z.x - camX, sy = z.y - camY;
       if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue;
-      const isBoss = z.type === 1;
-      const r = isBoss ? ZOMBIE_R * 2 : ZOMBIE_R;
+      const isBoss = z.type === 1 || z.type === 4;
+      const r = isBoss ? ZOMBIE_R * 2 : (z.type === 2 ? ZOMBIE_R * 1.4 : ZOMBIE_R);
       const spriteSize = isBoss ? r * 3 : r * 2.5;
-      const sprite = isBoss ? img.boss : img.zombie;
+
+      // Pick sprite by type
+      let sprite: HTMLImageElement | undefined;
+      if (z.type === 0) sprite = img.zombie;
+      else if (z.type === 1) sprite = img.boss;
+      else if (z.type === 2) sprite = img.zombie2; // fat
+      else if (z.type === 3) sprite = img.zombie3; // crawler
+      else if (z.type === 4) sprite = img.boss2;   // necromancer
 
       if (z.flash > 0) {
         ctx.globalAlpha = 0.6;
@@ -593,15 +680,36 @@ export default function ZombiePage() {
       ctx.filter = "none";
       ctx.globalAlpha = 1;
 
-      // HP bar for bosses
-      if (isBoss && z.hp < z.maxHp) {
+      // HP bar for bosses and tanky zombies
+      if ((isBoss || z.type === 2) && z.hp < z.maxHp) {
         const barW = r * 2.5;
         ctx.fillStyle = "#374151";
         ctx.fillRect(sx - barW / 2, sy - r - 10, barW, 4);
-        ctx.fillStyle = "#ef4444";
+        ctx.fillStyle = isBoss ? "#ef4444" : "#a855f7";
         ctx.fillRect(sx - barW / 2, sy - r - 10, barW * (z.hp / z.maxHp), 4);
       }
     }
+
+    // Drop items
+    for (const d of dropsRef.current) {
+      const sx = d.x - camX, sy = d.y - camY;
+      if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
+      const bob = Math.sin(performance.now() * 0.005) * 3;
+      const sprite = d.type === "health" ? img.health : img.shield;
+      if (sprite?.complete) {
+        ctx.drawImage(sprite, sx - 10, sy - 10 + bob, 20, 20);
+      } else {
+        ctx.fillStyle = d.type === "health" ? "#ef4444" : "#60a5fa";
+        ctx.beginPath();
+        ctx.arc(sx, sy + bob, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Blink when about to expire
+      if (d.life < 120 && Math.floor(d.life / 10) % 2 === 0) {
+        ctx.globalAlpha = 0.3;
+      }
+    }
+    ctx.globalAlpha = 1;
 
     // Bullets
     for (const b of bulletsRef.current) {
@@ -638,19 +746,46 @@ export default function ZombiePage() {
     // Player
     const blink = invincibleRef.current > 0 && Math.floor(invincibleRef.current / 4) % 2 === 0;
     if (!blink) {
-      const px = W / 2, py = H / 2; // Player is always center of screen
+      const px = W / 2, py = H / 2;
       const spriteW = 36, spriteH = 40;
-      if (img.player?.complete) {
+      const facing = facingRef.current;
+
+      // Pick directional sprite
+      let playerSprite: HTMLImageElement | undefined;
+      let flipX = false;
+      if (facing === "up" && img.playerUp?.complete) {
+        playerSprite = img.playerUp;
+      } else if (facing === "down" && img.playerDown?.complete) {
+        playerSprite = img.playerDown;
+      } else if (facing === "left" && img.player?.complete) {
+        playerSprite = img.player;
+        flipX = true;
+      } else {
+        playerSprite = img.player; // right (default) — also used as player-right
+      }
+
+      if (playerSprite?.complete) {
         ctx.save();
         ctx.translate(px, py);
-        if (facingRef.current < 0) ctx.scale(-1, 1);
-        ctx.drawImage(img.player, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
+        if (flipX) ctx.scale(-1, 1);
+        ctx.drawImage(playerSprite, -spriteW / 2, -spriteH / 2, spriteW, spriteH);
         ctx.restore();
       } else {
         ctx.fillStyle = "#6366f1";
         ctx.beginPath();
         ctx.arc(px, py, PLAYER_R, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // Shield effect
+      if (shieldTimerRef.current > 0) {
+        ctx.globalAlpha = 0.3 + Math.sin(performance.now() * 0.01) * 0.1;
+        ctx.strokeStyle = "#60a5fa";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, PLAYER_R + 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -714,7 +849,9 @@ export default function ZombiePage() {
     invincibleRef.current = 0;
     elapsedRef.current = 0;
     lastSpawnRef.current = 0;
-    facingRef.current = 1;
+    facingRef.current = "right";
+    dropsRef.current = [];
+    shieldTimerRef.current = 0;
     weaponsRef.current = [
       { type: "gun", level: 1, cooldown: 400, lastFire: 0, bulletCount: 1, damage: 1 },
     ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -9,90 +9,151 @@ interface TonightStatusProps {
   currentUserId: string;
 }
 
-type StatusOption = {
-  key: string;
-  emoji: string;
-  label: string;
-  color: string;
-};
-
-const STATUSES: StatusOption[] = [
+const STATUSES = [
   { key: "ready", emoji: "🟢", label: "参戦OK！", color: "bg-green-900/50 border-green-600 text-green-300" },
   { key: "maybe", emoji: "🟡", label: "寝かしつけ中", color: "bg-yellow-900/50 border-yellow-600 text-yellow-300" },
   { key: "late", emoji: "🔵", label: "遅れて参戦", color: "bg-blue-900/50 border-blue-600 text-blue-300" },
   { key: "off", emoji: "⚫", label: "今日は無理", color: "bg-gray-900/50 border-gray-600 text-gray-400" },
-];
+] as const;
 
 type MemberStatus = {
   user_id: string;
   status: string;
   display_name: string;
   avatar_url: string | null;
-  updated_at: string;
 };
 
+function getJSTToday(): string {
+  const now = new Date();
+  const jst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+  return jst.toISOString().split("T")[0];
+}
+
 export default function TonightStatus({ groupId, currentUserId }: TonightStatusProps) {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const [myStatus, setMyStatus] = useState<string | null>(null);
   const [members, setMembers] = useState<MemberStatus[]>([]);
   const [loading, setLoading] = useState(false);
+  const [myName, setMyName] = useState("自分");
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getJSTToday();
+
+  const loadStatuses = useCallback(async () => {
+    if (!currentUserId || !groupId) return;
+
+    try {
+      // Fetch statuses
+      const { data: statusData, error: statusErr } = await supabase
+        .from("cf_tonight_status")
+        .select("user_id, status")
+        .eq("group_id", groupId)
+        .eq("date", today);
+
+      if (statusErr) {
+        console.error("loadStatuses error:", statusErr);
+        return;
+      }
+
+      if (!statusData || statusData.length === 0) {
+        setMembers([]);
+        setMyStatus(null);
+        return;
+      }
+
+      // Fetch profiles separately
+      const userIds = statusData.map((d: any) => d.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .in("id", userIds);
+
+      const profileMap = new Map<string, any>();
+      (profiles || []).forEach((p: any) => profileMap.set(p.id, p));
+
+      const mapped: MemberStatus[] = statusData.map((d: any) => ({
+        user_id: d.user_id,
+        status: d.status,
+        display_name: profileMap.get(d.user_id)?.display_name ?? "?",
+        avatar_url: profileMap.get(d.user_id)?.avatar_url ?? null,
+      }));
+
+      setMembers(mapped);
+
+      const mine = mapped.find((m) => m.user_id === currentUserId);
+      setMyStatus(mine?.status ?? null);
+      if (mine) setMyName(mine.display_name);
+    } catch (e) {
+      console.error("loadStatuses exception:", e);
+    }
+  }, [supabase, groupId, currentUserId, today]);
+
+  // Load my profile name once
+  useEffect(() => {
+    if (!currentUserId) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", currentUserId)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setMyName(data.display_name);
+      });
+  }, [currentUserId]);
 
   useEffect(() => {
     loadStatuses();
-  }, [groupId]);
-
-  async function loadStatuses() {
-    const { data } = await supabase
-      .from("cf_tonight_status")
-      .select("*, profiles(*)")
-      .eq("group_id", groupId)
-      .eq("date", today);
-
-    if (data) {
-      const mapped = data.map((d: Record<string, unknown>) => ({
-        user_id: d.user_id as string,
-        status: d.status as string,
-        display_name: (d.profiles as Record<string, unknown>)?.display_name as string ?? "?",
-        avatar_url: (d.profiles as Record<string, unknown>)?.avatar_url as string | null,
-        updated_at: d.updated_at as string,
-      }));
-      setMembers(mapped);
-      const mine = mapped.find((m) => m.user_id === currentUserId);
-      if (mine) setMyStatus(mine.status);
-    }
-  }
+  }, [loadStatuses]);
 
   async function setStatus(statusKey: string) {
-    if (loading) return;
+    if (loading || !currentUserId) return;
     setLoading(true);
 
     if (myStatus === statusKey) {
-      // Toggle off
+      // Toggle off - optimistic
+      setMyStatus(null);
+      setMembers((prev) => prev.filter((m) => m.user_id !== currentUserId));
+
       await supabase
         .from("cf_tonight_status")
         .delete()
         .eq("group_id", groupId)
         .eq("user_id", currentUserId)
         .eq("date", today);
-      setMyStatus(null);
-      setMembers((prev) => prev.filter((m) => m.user_id !== currentUserId));
     } else {
+      // Set status - optimistic update immediately
+      setMyStatus(statusKey);
+      setMembers((prev) => {
+        const others = prev.filter((m) => m.user_id !== currentUserId);
+        return [
+          ...others,
+          { user_id: currentUserId, status: statusKey, display_name: myName, avatar_url: null },
+        ];
+      });
+
+      // Write to DB (delete + insert for reliability)
       await supabase
         .from("cf_tonight_status")
-        .upsert(
-          {
-            group_id: groupId,
-            user_id: currentUserId,
-            date: today,
-            status: statusKey,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "group_id,user_id,date" }
-        );
-      setMyStatus(statusKey);
-      await loadStatuses();
+        .delete()
+        .eq("group_id", groupId)
+        .eq("user_id", currentUserId)
+        .eq("date", today);
+
+      const { error } = await supabase
+        .from("cf_tonight_status")
+        .insert({
+          group_id: groupId,
+          user_id: currentUserId,
+          date: today,
+          status: statusKey,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error("setStatus error:", error);
+        // Revert optimistic update on error
+        setMyStatus(null);
+        setMembers((prev) => prev.filter((m) => m.user_id !== currentUserId));
+      }
     }
 
     setLoading(false);
@@ -130,20 +191,23 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
         ))}
       </div>
 
-      {/* Member statuses */}
-      {members.length > 0 && (
+      {/* Member statuses - always show */}
+      {members.length > 0 ? (
         <div className="space-y-1.5">
           {members.map((m) => {
             const statusInfo = STATUSES.find((s) => s.key === m.status);
+            const isMe = m.user_id === currentUserId;
             return (
-              <div key={m.user_id} className="flex items-center gap-2">
+              <div key={m.user_id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${isMe ? "bg-indigo-900/40" : ""}`}>
                 <Avatar className="h-6 w-6">
                   {m.avatar_url ? <AvatarImage src={m.avatar_url} /> : null}
                   <AvatarFallback className="bg-indigo-800 text-indigo-300 text-[10px]">
                     {m.display_name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-xs text-indigo-200 flex-1 truncate">{m.display_name}</span>
+                <span className="text-xs text-indigo-200 flex-1 truncate">
+                  {m.display_name}{isMe && " (自分)"}
+                </span>
                 <span className="text-xs">
                   {statusInfo?.emoji} {statusInfo?.label}
                 </span>
@@ -151,9 +215,7 @@ export default function TonightStatus({ groupId, currentUserId }: TonightStatusP
             );
           })}
         </div>
-      )}
-
-      {members.length === 0 && (
+      ) : (
         <p className="text-xs text-indigo-500 text-center">まだ誰もステータスを設定していません</p>
       )}
     </div>
