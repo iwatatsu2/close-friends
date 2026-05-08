@@ -16,7 +16,7 @@ export async function ensureProfile(supabase: SupabaseClient, userId: string) {
       data: { user },
     } = await supabase.auth.getUser();
     const displayName =
-      user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "ユーザー";
+      user?.user_metadata?.display_name ?? "名無しさん";
 
     await supabase.from("profiles").upsert(
       { id: userId, display_name: displayName },
