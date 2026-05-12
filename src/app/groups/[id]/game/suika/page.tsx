@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -11,9 +12,9 @@ const CANVAS_W = 300;
 const CANVAS_H = 500;
 const WALL_W = 8;
 const FLOOR_Y = CANVAS_H - WALL_W;
-const GRAVITY = 0.4;
-const BOUNCE = 0.1;
-const FRICTION = 0.92;
+const GRAVITY = 0.35;
+const BOUNCE = 0.05;
+const FRICTION = 0.85;
 const GAME_OVER_LINE = 80;
 
 // Fruits: index 0-10, each merges into next
@@ -74,7 +75,7 @@ export default function SuikaPage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
       if (!user) { router.push("/login"); return; }
       userIdRef.current = user.id;
       await ensureProfile(supabase, user.id);
@@ -204,7 +205,9 @@ export default function SuikaPage() {
       if (b.y + b.r > FLOOR_Y) {
         b.y = FLOOR_Y - b.r;
         b.vy = -b.vy * BOUNCE;
-        if (Math.abs(b.vy) < 0.5) b.vy = 0;
+        b.vx *= 0.8; // extra friction on floor contact
+        if (Math.abs(b.vy) < 0.8) b.vy = 0;
+        if (Math.abs(b.vx) < 0.3) b.vx = 0;
       }
       // Walls
       if (b.x - b.r < left) { b.x = left + b.r; b.vx = Math.abs(b.vx) * BOUNCE; }
@@ -245,23 +248,26 @@ export default function SuikaPage() {
           const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
           const dvDotN = dvx * nx + dvy * ny;
           if (dvDotN > 0) {
-            const restitution = 0.15;
+            const restitution = 0.08;
             a.vx -= dvDotN * nx * restitution;
             a.vy -= dvDotN * ny * restitution;
             b.vx += dvDotN * nx * restitution;
             b.vy += dvDotN * ny * restitution;
           }
+          // Dampen velocities after collision
+          a.vx *= 0.9; a.vy *= 0.9;
+          b.vx *= 0.9; b.vy *= 0.9;
         }
       }
     }
 
     ballsRef.current = [...balls.filter(b => !b.merged), ...toAdd];
 
-    // Game over check: any ball above line for sustained time
-    const anyAbove = ballsRef.current.some(b => b.y - b.r < GAME_OVER_LINE && Math.abs(b.vy) < 1);
+    // Game over check: any settled ball above line for sustained time
+    const anyAbove = ballsRef.current.some(b => b.y - b.r < GAME_OVER_LINE && Math.abs(b.vy) < 3);
     if (anyAbove) {
       gameOverTimerRef.current++;
-      if (gameOverTimerRef.current > 90) { // ~1.5 seconds
+      if (gameOverTimerRef.current > 60) { // ~1 second
         phaseRef.current = "gameover";
         setPhase("gameover");
         setScore(scoreRef.current);

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-sans",
@@ -42,7 +43,7 @@ export default function RootLayout({
       lang="ja"
       className={`${notoSansJP.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col font-medium">{children}</body>
+      <body className="min-h-full flex flex-col font-medium">{children}<Analytics /></body>
     </html>
   );
 }

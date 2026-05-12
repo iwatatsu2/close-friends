@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 import { ImagePlus, Loader2, X } from "lucide-react";
 
 interface PostFormProps {
@@ -46,9 +47,7 @@ export default function PostForm({ groupId, onSuccess }: PostFormProps) {
     const supabase = createClient();
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
 
       if (!user) {
         setError("ログインが必要です");

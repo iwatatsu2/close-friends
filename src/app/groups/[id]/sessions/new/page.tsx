@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ export default function NewSessionPage() {
     }
 
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getAuthUser(supabase);
     if (!user) return;
 
     const scheduledAt = new Date(`${date}T${time}:00`).toISOString();

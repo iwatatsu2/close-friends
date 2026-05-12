@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -25,7 +26,7 @@ export default function GroupTimelinePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
       if (!user) {
         router.push("/login");
         return;
@@ -45,7 +46,28 @@ export default function GroupTimelinePage() {
       ]);
 
       if (groupData) setGroup(groupData);
-      if (postsData) setPosts(postsData as Post[]);
+      if (postsData) {
+        // リアクションを別クエリで取得してマージ
+        const postIds = postsData.map((p: Post) => p.id);
+        const { data: reactionsData } = await supabase
+          .from("cf_reactions")
+          .select("*")
+          .in("post_id", postIds);
+
+        const reactionsByPost = (reactionsData ?? []).reduce<Record<string, typeof reactionsData>>((acc, r) => {
+          const key = r.post_id as string;
+          if (!acc[key]) acc[key] = [];
+          acc[key]!.push(r);
+          return acc;
+        }, {});
+
+        const postsWithReactions = postsData.map((p: Post) => ({
+          ...p,
+          reactions: reactionsByPost[p.id] ?? [],
+        }));
+
+        setPosts(postsWithReactions as Post[]);
+      }
       setLoading(false);
     };
 

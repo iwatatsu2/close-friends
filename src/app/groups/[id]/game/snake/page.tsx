@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -46,7 +47,7 @@ export default function SnakePage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
       if (!user) { router.push("/login"); return; }
       userIdRef.current = user.id;
       await ensureProfile(supabase, user.id);

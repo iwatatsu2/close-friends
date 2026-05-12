@@ -1,4 +1,5 @@
 'use client'
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -29,7 +30,7 @@ export default function ProfileSetupPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getAuthUser(supabase)
       if (!user) {
         router.push('/login')
         return

@@ -1,4 +1,5 @@
 "use client";
+import { getAuthUser } from "@/lib/supabase/getAuthUser";
 
 import { useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -52,7 +53,7 @@ export default function CreatePostPage() {
     setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser(supabase);
       if (!user) {
         router.push("/login");
         return;
